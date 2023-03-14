@@ -1,0 +1,72 @@
+version: '3'
+services:
+  jenkins:
+    container_name: jenkins
+    image: jenkins/jenkins:2.387.1-lts-jdk11
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    volumes:
+      - "$PWD/master:/var/jenkins_home"
+    networks:
+      - net
+  maven:
+    container_name: maven
+      #image: maven-slave
+    build:
+      context: slave/maven
+    networks:
+      - net
+  sonar:
+    container_name: sonar
+    image: sonarqube:8.8.0-community
+    command: -Dsonar.ce.javaOpts=-Xmx1192m -Dsonar.web.javaOpts=-Xmx1192m
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - SONARQUBE_JDBC_USERNAME=admin
+      - SONARQUBE_JDBC_PASSWORD=admin
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://db:5432/sonarqube
+    depends_on:
+      - db
+    networks:
+      - net
+  db:
+    container_name: pgsql
+    image: postgres:12
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=sonarqube
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - net
+  tomcat:
+    container_name: tomcat
+      # image: tomcat
+    ports:
+      - "9090:8080"
+    build:
+      context: slave/tomcat9
+    networks:
+      - net
+  nexus:
+    container_name: nexus
+    image: sonatype/nexus3
+    volumes:
+      - "$PWD/slave/nexus-data:/sonatype-work"
+    ports:
+      - "8081:8081"
+    networks:
+      - net
+networks:
+  net:
+volumes:
+  postgresql:
+  postgresql_data:
+
