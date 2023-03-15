@@ -21,11 +21,11 @@ RUN chmod 600 /home/jenkins/.ssh/authorized_keys
 
 RUN rm -f /run/nologin
 
-RUN yum update -y && \
-    yum install -y git && \
-    yum install -y net-tools && \
-    yum install -y java-11-openjdk-devel && \
-    yum install -y maven
+RUN dnf update -y && \
+    dnf install -y git && \
+    dnf install -y net-tools && \
+    dnf install -y java-11-openjdk-devel && \
+    dnf install -y maven
 
 RUN ssh-keygen -A
 
